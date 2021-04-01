@@ -36,9 +36,9 @@ function mz_clickView_ViewPost(&$template)
     $rltCon = str_replace("-id-", $i, $rltCon);
     $article->Content = str_replace($curCon, $rltCon, $article->Content);
   }
-  $zbp->header .= '<link rel="stylesheet" href="' . mz_clickView_Path("css-web", "host") . '?v=2020-12-19">';
-  $zbp->footer .= '<script src="' . mz_clickView_Path("js-base64", "host") . '?v=2020-12-19"></script>';
-  $zbp->footer .= '<script src="' . mz_clickView_Path("js-web", "host") . '?v=2020-12-19"></script>';
+  $zbp->header .= '<link rel="stylesheet" href="' . mz_clickView_Path("css-web", "host") . '?v=20210401103">';
+  $zbp->footer .= '<script src="' . mz_clickView_Path("js-base64", "host") . '?v=20210401103"></script>';
+  $zbp->footer .= '<script src="' . mz_clickView_Path("js-web", "host") . '?v=20210401103"></script>';
 }
 function mz_clickView_Path($file, $t = 'path')
 {

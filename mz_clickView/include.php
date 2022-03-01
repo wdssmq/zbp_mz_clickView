@@ -40,9 +40,9 @@ function mz_clickView_ViewPost(&$template)
     return $rltLock;
   }, $article->Content);
   // 样式及 JS 引入
-  $zbp->header .= '<link rel="stylesheet" href="' . mz_clickView_Path("bin/style.css", "host") . '?v=20220301103">';
-  $zbp->footer .= '<script src="' . mz_clickView_Path("js-base64", "host") . '?v=20220301103"></script>';
-  $zbp->footer .= '<script src="' . mz_clickView_Path("bin/web.js", "host") . '?v=20220301103"></script>';
+  $zbp->header .= '<link rel="stylesheet" href="' . mz_clickView_Path("bin/style.css", "host") . '?v=20220302103">';
+  $zbp->footer .= '<script src="' . mz_clickView_Path("js-base64", "host") . '?v=20220302103"></script>';
+  $zbp->footer .= '<script src="' . mz_clickView_Path("bin/web.js", "host") . '?v=20220302103"></script>';
 }
 
 function mz_clickView_BuildLockHTML()

@@ -12,6 +12,8 @@ function mz_clickView_EdtJS()
 {
   echo '<script src="' . mz_clickView_Path("js-admin", "host") . '"></script>';
 }
+
+
 function mz_clickView_ViewPost(&$template)
 {
   global $zbp;
@@ -20,25 +22,27 @@ function mz_clickView_ViewPost(&$template)
     $diy = "|$diy";
   }
   $article = $template->GetTags('article');
+  // 正则
   $pattern = "/<p>[^<>]*\[clickView\](?<text>.+?)\[\/clickView\][^<>]*<\/p>{$diy}/uis";
-  $match = array();
-  $rlt = preg_match_all($pattern, $article->Content, $match);
-  if (!$rlt) {
-    return;
-  }
-  foreach ($match[0] as $i => $curCon) {
-    $text = $match["text"][$i];
-    if (empty($text) && isset($match["text2"][$i])) {
-      $text = $match["text2"][$i];
+  // 隐藏后的内容模板
+  $tplLock = file_get_contents(mz_clickView_Path("u-lock"));
+  // preg_replace_callback 竟然不自带自增序号？
+  $i = 0;
+  // 正则替换
+  $article->Content = preg_replace_callback($pattern, function ($match) use ($tplLock, &$i) {
+    $i++;
+    $text = $match["text"];
+    if (empty($text) && isset($match["text2"])) {
+      $text = $match["text2"];
     }
-    $rltCon = file_get_contents(mz_clickView_Path("u-lock"));
-    $rltCon = str_replace("-encode-", base64_encode("<p>{$text}</p>"), $rltCon);
-    $rltCon = str_replace("-id-", $i, $rltCon);
-    $article->Content = str_replace($curCon, $rltCon, $article->Content);
-  }
-  $zbp->header .= '<link rel="stylesheet" href="' . mz_clickView_Path("css-web", "host") . '?v=20210401103">';
-  $zbp->footer .= '<script src="' . mz_clickView_Path("js-base64", "host") . '?v=20210401103"></script>';
-  $zbp->footer .= '<script src="' . mz_clickView_Path("js-web", "host") . '?v=20210401103"></script>';
+    $rltLock = str_replace("-encode-", base64_encode("<p>{$text}</p>"), $tplLock);
+    $rltLock = str_replace("-id-", $i, $rltLock);
+    return $rltLock;
+  }, $article->Content);
+  // 样式及 JS 引入
+  $zbp->header .= '<link rel="stylesheet" href="' . mz_clickView_Path("css-web", "host") . '?v=20220301103">';
+  $zbp->footer .= '<script src="' . mz_clickView_Path("js-base64", "host") . '?v=20220301103"></script>';
+  $zbp->footer .= '<script src="' . mz_clickView_Path("js-web", "host") . '?v=20220301103"></script>';
 }
 function mz_clickView_Path($file, $t = 'path')
 {

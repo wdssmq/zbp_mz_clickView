@@ -25,12 +25,16 @@ if ($act == 'save') {
   Redirect('./main.php' . ($suc == null ? '' : '?act=$suc'));
 }
 
+InstallPlugin_mz_clickView();
+
+$listTpl = mz_clickView_ListTPL();
+
 $blogtitle = '点击查看';
 require $blogpath . 'zb_system/admin/admin_header.php';
 require $blogpath . 'zb_system/admin/admin_top.php';
 ?>
 <div id="divMain">
-  <div class="divHeader"><?php echo $blogtitle; ?><small><a title="刷新" href="main.php" style="font-size: 16px;display: inline-block;margin-left: 5px;">刷新</a></small></div>
+  <div class="divHeader"><?php echo $blogtitle; ?></div>
   <div class="SubMenu">
     <a href="main.php" title="首页"><span class="m-left m-now">首页</span></a>
     <?php require "about.php"; ?>
@@ -57,6 +61,11 @@ require $blogpath . 'zb_system/admin/admin_top.php';
           <td>附加信息</td>
           <td><?php echo zbpform::text("tipMore", FormatString($zbp->Config("mz_clickView")->tipMore, "[html-format]"), "90%"); ?></td>
           <td>模板调用：-tipMore-</td>
+        </tr>
+        <tr>
+          <td>样式模板</td>
+          <td><?php echo zbpform::select('tpl', array_keys($listTpl), $zbp->Config("mz_clickView")->tpl); ?></td>
+          <td></td>
         </tr>
         <tr>
           <td>保存</td>

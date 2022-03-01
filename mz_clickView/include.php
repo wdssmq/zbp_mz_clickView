@@ -25,7 +25,7 @@ function mz_clickView_ViewPost(&$template)
   // 正则
   $pattern = "/<p>[^<>]*\[clickView\](?<text>.+?)\[\/clickView\][^<>]*<\/p>{$diy}/uis";
   // 隐藏后的内容模板
-  $tplLock = file_get_contents(mz_clickView_Path("u-lock"));
+  $tplLock = file_get_contents(mz_clickView_Path("bin/lock.html"));
   // preg_replace_callback 竟然不自带自增序号？
   $i = 0;
   // 正则替换
@@ -40,7 +40,7 @@ function mz_clickView_ViewPost(&$template)
     return $rltLock;
   }, $article->Content);
   // 样式及 JS 引入
-  $zbp->header .= '<link rel="stylesheet" href="' . mz_clickView_Path("css-web", "host") . '?v=20220301103">';
+  $zbp->header .= '<link rel="stylesheet" href="' . mz_clickView_Path("bin/style.css", "host") . '?v=20220301103">';
   $zbp->footer .= '<script src="' . mz_clickView_Path("js-base64", "host") . '?v=20220301103"></script>';
   $zbp->footer .= '<script src="' . mz_clickView_Path("js-web", "host") . '?v=20220301103"></script>';
 }
@@ -48,30 +48,53 @@ function mz_clickView_ViewPost(&$template)
 function mz_clickView_BuildLockHTML()
 {
   global $zbp;
-  $cfgData = $zbp->Config('mz_clickView')->GetData();
-  $uFile = mz_clickView_Path("u-lock");
-  $vFile = mz_clickView_Path("v-lock");
-  $html = file_get_contents($vFile);
-  foreach ($cfgData as $key => $value) {
+  // 读取配置
+  $cfg = $zbp->Config('mz_clickView')->GetData();
+  $cfg["feedurl"] = urlencode($zbp->feedurl);
+
+  // 获取模板
+  $listTpl = mz_clickView_ListTPL();
+  $keyTpl = $cfg["tpl"] ?? "def";
+  $itemTpl = $listTpl[$keyTpl] ?? $listTpl["def"];
+
+  $html = file_get_contents($itemTpl["html"]);
+  $style = file_get_contents($itemTpl["style"]);
+
+  foreach ($cfg as $key => $value) {
     $html = str_replace("-{$key}-", $value, $html);
   }
-  file_put_contents($uFile, str_replace("-feedurl-", urlencode($zbp->feedurl), $html));
+
+  $binHTML = str_replace("var/{$keyTpl}", "bin", $itemTpl["html"]);
+  $binStyle = str_replace("var/{$keyTpl}", "bin", $itemTpl["style"]);
+
+  file_put_contents($binHTML, $html);
+  file_put_contents($binStyle, $style);
 }
+
+function mz_clickView_ListTPL()
+{
+  $arrTpl = array();
+
+  $tplDirs = array(mz_clickView_Path("var", "path"), mz_clickView_Path("usr", "path"));
+  foreach ($tplDirs as $tplDir) {
+    foreach (GetDirsInDir($tplDir) as $dir) {
+      $arrTpl[$dir] = array(
+        // "name" => $dir,
+        "html" => "{$tplDir}/{$dir}/lock.html",
+        "style" => "{$tplDir}/{$dir}/style.css",
+      );
+    }
+  }
+  return $arrTpl;
+}
+
+mz_clickView_ListTPL();
 
 function mz_clickView_Path($file, $t = 'path')
 {
   global $zbp;
   $result = $zbp->$t . 'zb_users/plugin/mz_clickView/';
   switch ($file) {
-    case 'u-lock':
-      return $result . 'usr/lock.html';
-      break;
-    case 'v-lock':
-      return $result . 'var/lock.html';
-      break;
-    case 'css-web':
-      return $result . 'css/style.css';
-      break;
     case 'js-base64':
       return $result . 'script/jquery.base64.js';
       break;
@@ -80,12 +103,6 @@ function mz_clickView_Path($file, $t = 'path')
       break;
     case 'js-admin':
       return $result . 'script/admin.js';
-      break;
-    case 'usr':
-      return $result . 'usr/';
-      break;
-    case 'var':
-      return $result . 'var/';
       break;
     case 'main':
       return $result . 'main.php';
@@ -101,28 +118,36 @@ function InstallPlugin_mz_clickView()
   if (!$zbp->HasConfig('mz_clickView')) {
     $zbp->Config('mz_clickView')->version = 1;
     $zbp->Config("mz_clickView")->time = 0;
+    $zbp->Config('mz_clickView')->tpl = "def";
     $zbp->Config('mz_clickView')->tipInfo = "此处内容默认隐藏，请点击右边按钮显示";
     $zbp->Config('mz_clickView')->tipMore = '[<a href="https://feedly.com/i/subscription/feed/-feedurl-" target="_blank" title="订阅到feedly">订阅到feedly</a>] [<a href="https://www.innoreader.com/feed/-feedurl-" target="_blank" title="订阅到inoreader">订阅到inoreader</a>] [<a href="https://feeds.pub/feed/-feedurl-" target="_blank" title="订阅到FeedsPub">订阅到FeedsPub</a>]';
     $zbp->SaveConfig('mz_clickView');
-  } else {
-    if ($zbp->Config('mz_clickView')->version < 1.1) {
-      $zbp->Config('mz_clickView')->version = 1.1;
-      $zbp->Config('mz_clickView')->tipInfo = "此处内容默认隐藏，请点击右边按钮显示；";
-      $zbp->Config('mz_clickView')->tipMore = $zbp->Config('mz_clickView')->tip;
-      $zbp->Config('mz_clickView')->Del("tip");
-      $zbp->SaveConfig('mz_clickView');
-    }
   }
-  $filesList = array("lock");
-  foreach ($filesList as $key => $value) {
-    $uFile = mz_clickView_Path("u-{$value}");
-    $vFile = mz_clickView_Path("v-{$value}");
-    if (!is_file($uFile)) {
-      @mkdir(dirname($uFile));
-      copy($vFile, $uFile);
-    }
+  // 确保文件夹存在
+  $dir = mz_clickView_Path("bin", "path");
+  if (!is_dir($dir)) {
+    @mkdir($dir, 0755);
   }
   mz_clickView_BuildLockHTML();
+}
+
+// 插件升级时执行
+function UpdatePlugin_mz_clickView()
+{
+  global $zbp;
+  // 2022-03-01
+  if (!$zbp->Config('mz_clickView')->HasKey("tpl")) {
+    $zbp->Config('mz_clickView')->tpl = "def";
+    $zbp->SaveConfig('mz_clickView');
+    mz_clickView_BuildLockHTML();
+    Redirect(mz_clickView_Path("main", "host"));
+  }
+}
+
+// 旧版兼容
+function mz_clickView_Updated()
+{
+  UpdatePlugin_mz_clickView();
 }
 
 function UninstallPlugin_mz_clickView()

@@ -51,12 +51,12 @@ require $blogpath . 'zb_system/admin/admin_top.php';
         <tr>
           <td>提示信息</td>
           <td><?php echo zbpform::text("tipInfo", FormatString($zbp->Config("mz_clickView")->tipInfo, "[html-format]"), "90%"); ?></td>
-          <td></td>
+          <td>模板调用：-tipInfo-</td>
         </tr>
         <tr>
           <td>附加信息</td>
           <td><?php echo zbpform::text("tipMore", FormatString($zbp->Config("mz_clickView")->tipMore, "[html-format]"), "90%"); ?></td>
-          <td></td>
+          <td>模板调用：-tipMore-</td>
         </tr>
         <tr>
           <td>保存</td>

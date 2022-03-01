@@ -42,7 +42,7 @@ function mz_clickView_ViewPost(&$template)
   // 样式及 JS 引入
   $zbp->header .= '<link rel="stylesheet" href="' . mz_clickView_Path("bin/style.css", "host") . '?v=20220301103">';
   $zbp->footer .= '<script src="' . mz_clickView_Path("js-base64", "host") . '?v=20220301103"></script>';
-  $zbp->footer .= '<script src="' . mz_clickView_Path("js-web", "host") . '?v=20220301103"></script>';
+  $zbp->footer .= '<script src="' . mz_clickView_Path("bin/web.js", "host") . '?v=20220301103"></script>';
 }
 
 function mz_clickView_BuildLockHTML()
@@ -60,15 +60,28 @@ function mz_clickView_BuildLockHTML()
   $html = file_get_contents($itemTpl["html"]);
   $style = file_get_contents($itemTpl["style"]);
 
+  if (is_file($itemTpl["script"])) {
+    $script = file_get_contents($itemTpl["script"]);
+  } else {
+    $script = file_get_contents(mz_clickView_Path("js-web"));;
+  }
+
   foreach ($cfg as $key => $value) {
     $html = str_replace("-{$key}-", $value, $html);
   }
 
-  $binHTML = str_replace("var/{$keyTpl}", "bin", $itemTpl["html"]);
-  $binStyle = str_replace("var/{$keyTpl}", "bin", $itemTpl["style"]);
+  $arrMap = [
+    "var/{$keyTpl}" => "bin",
+    "usr/{$keyTpl}" => "bin",
+  ];
+
+  $binHTML = strtr($itemTpl["html"], $arrMap);
+  $binStyle = strtr($itemTpl["style"], $arrMap);
+  $binScript = strtr($itemTpl["script"], $arrMap);
 
   file_put_contents($binHTML, $html);
   file_put_contents($binStyle, $style);
+  file_put_contents($binScript, $script);
 }
 
 function mz_clickView_ListTPL()
@@ -82,6 +95,7 @@ function mz_clickView_ListTPL()
         // "name" => $dir,
         "html" => "{$tplDir}/{$dir}/lock.html",
         "style" => "{$tplDir}/{$dir}/style.css",
+        "script" => "{$tplDir}/{$dir}/web.js",
       );
     }
   }

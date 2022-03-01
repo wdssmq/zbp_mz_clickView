@@ -28,6 +28,10 @@ if ($act == 'save') {
 InstallPlugin_mz_clickView();
 
 $listTpl = mz_clickView_ListTPL();
+$optionsTpl = array();
+foreach ($listTpl as $key => $value) {
+  $optionsTpl[$key] = $key;
+}
 
 $blogtitle = '点击查看';
 require $blogpath . 'zb_system/admin/admin_header.php';
@@ -64,7 +68,7 @@ require $blogpath . 'zb_system/admin/admin_top.php';
         </tr>
         <tr>
           <td>样式模板</td>
-          <td><?php echo zbpform::select('tpl', array_keys($listTpl), $zbp->Config("mz_clickView")->tpl); ?></td>
+          <td><?php echo zbpform::select('tpl', $optionsTpl, $zbp->Config("mz_clickView")->tpl); ?></td>
           <td></td>
         </tr>
         <tr>

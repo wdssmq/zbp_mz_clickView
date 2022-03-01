@@ -4,15 +4,15 @@ RegisterPlugin("mz_clickView", "ActivePlugin_mz_clickView");
 
 function ActivePlugin_mz_clickView()
 {
-  Add_Filter_Plugin('Filter_Plugin_ViewPost_Template', 'mz_clickView_ViewPost');
-  Add_Filter_Plugin('Filter_Plugin_Zbp_BuildTemplate', 'InstallPlugin_mz_clickView');
   Add_Filter_Plugin('Filter_Plugin_Edit_Response2', 'mz_clickView_EdtJS');
+  Add_Filter_Plugin('Filter_Plugin_ViewPost_Template', 'mz_clickView_ViewPost');
+  // Add_Filter_Plugin('Filter_Plugin_Zbp_BuildTemplate', 'InstallPlugin_mz_clickView');
 }
+
 function mz_clickView_EdtJS()
 {
   echo '<script src="' . mz_clickView_Path("js-admin", "host") . '"></script>';
 }
-
 
 function mz_clickView_ViewPost(&$template)
 {
@@ -44,6 +44,20 @@ function mz_clickView_ViewPost(&$template)
   $zbp->footer .= '<script src="' . mz_clickView_Path("js-base64", "host") . '?v=20220301103"></script>';
   $zbp->footer .= '<script src="' . mz_clickView_Path("js-web", "host") . '?v=20220301103"></script>';
 }
+
+function mz_clickView_BuildLockHTML()
+{
+  global $zbp;
+  $cfgData = $zbp->Config('mz_clickView')->GetData();
+  $uFile = mz_clickView_Path("u-lock");
+  $vFile = mz_clickView_Path("v-lock");
+  $html = file_get_contents($vFile);
+  foreach ($cfgData as $key => $value) {
+    $html = str_replace("-{$key}-", $value, $html);
+  }
+  file_put_contents($uFile, str_replace("-feedurl-", urlencode($zbp->feedurl), $html));
+}
+
 function mz_clickView_Path($file, $t = 'path')
 {
   global $zbp;
@@ -80,6 +94,7 @@ function mz_clickView_Path($file, $t = 'path')
       return $result . $file;
   }
 }
+
 function InstallPlugin_mz_clickView()
 {
   global $zbp;
@@ -109,18 +124,7 @@ function InstallPlugin_mz_clickView()
   }
   mz_clickView_BuildLockHTML();
 }
-function mz_clickView_BuildLockHTML()
-{
-  global $zbp;
-  $cfgData = $zbp->Config('mz_clickView')->GetData();
-  $uFile = mz_clickView_Path("u-lock");
-  $vFile = mz_clickView_Path("v-lock");
-  $html = file_get_contents($vFile);
-  foreach ($cfgData as $key => $value) {
-    $html = str_replace("-{$key}-", $value, $html);
-  }
-  file_put_contents($uFile, str_replace("-feedurl-", urlencode($zbp->feedurl), $html));
-}
+
 function UninstallPlugin_mz_clickView()
 {
 }

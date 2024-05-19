@@ -1,4 +1,4 @@
-$(function () {
+$(function() {
   if ($(".edt-more").length == 0) {
     $("#msg").after(
       "<a title=\"插入摘要分隔符\" href='javascript:void(0)' onclick='fnEdtMore();' class=\"edt-more\"> [摘要分隔]</a>",

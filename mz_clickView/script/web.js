@@ -1,5 +1,5 @@
-$(function () {
-  $(".mcv-view").click(function () {
+$(function() {
+  $(".mcv-view").click(function() {
     let targetID = $(this).data("target");
     let $target = $(`.mcv-encode.target-${targetID}`);
     let $curEl = $(`.mcv-read.current-${targetID}`);
